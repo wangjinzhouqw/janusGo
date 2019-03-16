@@ -37,3 +37,8 @@ func (h *JanusTransportCallbackHandler) EventIsEnabled() bool {
 func (h *JanusTransportCallbackHandler) NotifyEvent(plugin janusCore.JanusTransport, transport interface{},event map[string]interface{}) {
 
 }
+
+func NewJanusTransportCallbackHandler() *JanusTransportCallbackHandler{
+	handler := JanusTransportCallbackHandler{}
+	return &handler
+}

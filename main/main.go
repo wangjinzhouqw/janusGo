@@ -169,8 +169,9 @@ func JanusTransportTask(){
 
 }
 
-func LoadJanusTransport(){
-
+func LoadJanusTransport() int{
+	NewJanusTransportCallbackHandler()
+	return 0
 }
 
 func main()  {
@@ -186,7 +187,6 @@ func main()  {
 	JanusTransportRequests()
 	JanusTransportTask()
 	LoadJanusTransport()
-
 
 	go WatchDogCheck()
 	ach := make(chan int,1)
