@@ -1,7 +1,10 @@
 package main
 
 import (
+	"container/list"
 	"flag"
+	"janusGo/janusCore"
+	"time"
 )
 
 
@@ -46,8 +49,18 @@ type JanusParam struct {
 	event_handlers bool
 }
 
+
+
+type JanusRunVar struct {
+	sessions map[uint64]janusCore.JanusSession
+	requests list.List
+	transports map[string]janusCore.JanusTransport
+	transports_so map[string]interface{} //open so file handler
+}
+
 var (
 	janusParam JanusParam
+	janusRunVar JanusRunVar
 )
 
 func init(){
@@ -129,11 +142,53 @@ func init(){
 	flag.BoolVar(&janusParam.event_handlers,"event-handlers",false,"Enable event handlers  (default=off)")
 }
 
+func janusCheckSession(){
+
+}
+func WatchDogCheck()  {
+	ticker := time.NewTicker(time.Second*2) // 2s
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			janusCheckSession()
+		}
+	}
+}
+
+func DaemonizeRun(){
+
+}
+
+//gorontine will dispatch incoming requests
+func JanusTransportRequests(){
+	
+}
+
+func JanusTransportTask(){
+
+}
+
+func LoadJanusTransport(){
+
+}
+
 func main()  {
 	flag.Parse()
 	if janusParam.help {
 		flag.PrintDefaults()
 	}
 
+	if(janusParam.daemon){
+		DaemonizeRun()
+	}
 
+	JanusTransportRequests()
+	JanusTransportTask()
+	LoadJanusTransport()
+
+
+	go WatchDogCheck()
+	ach := make(chan int,1)
+	<-ach
 }
