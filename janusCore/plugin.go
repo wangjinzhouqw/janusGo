@@ -1,4 +1,4 @@
-package plugins
+package janusCore
 
 const (
 	JANUS_PLUGIN_ERROR = -1
@@ -16,7 +16,6 @@ type JanusPluginSession struct {
 	Gatewayhandle interface{} // JanusIceHandle
 	PluginHandle interface{} //plugin session instance
 	Stopped bool // session stop
-
 }
 
 type JanusCallbacks interface {
