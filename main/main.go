@@ -56,6 +56,8 @@ type JanusRunVar struct {
 	requests list.List
 	transports map[string]janusCore.JanusTransport
 	transports_so map[string]interface{} //open so file handler
+	janusTransportCallbackhandler *JanusTransportCallbackHandler
+	websocketTransport *janusCore.WebSoocketsTransport
 }
 
 var (
@@ -170,7 +172,10 @@ func JanusTransportTask(){
 }
 
 func LoadJanusTransport() int{
-	NewJanusTransportCallbackHandler()
+	janusRunVar.janusTransportCallbackhandler = NewJanusTransportCallbackHandler()
+	janusRunVar.websocketTransport = janusCore.NewWebsocketTransport()
+	janusRunVar.websocketTransport.Init(janusRunVar.janusTransportCallbackhandler,janusParam.config_file)
+	janusRunVar.transports[janusRunVar.websocketTransport.GetPackage()] = janusRunVar.websocketTransport
 	return 0
 }
 

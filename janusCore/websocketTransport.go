@@ -1,76 +1,96 @@
 package janusCore
 
-type WebSoocketTransport struct {
+const (
+	VERSION  = 1
+	VERSION_STRING = "0.0.1"
+	DESCRIPTION = "This transport plugin adds WebSockets support to the Janus API via libwebsockets."
+	NAME = "JANUS WebSockets transport plugin"
+	AUTHOR = "jinzhou.wang"
+	PACKAGE = "janus.transport.websockets"
+	)
 
+type WebSoocketsTransport struct {
+	gateway JanusTransportCallbacks
 }
 
-func (w *WebSoocketTransport) Init(callback JanusTransportCallbacks, configPath string) int {
+func (w *WebSoocketsTransport) Init(callback JanusTransportCallbacks, configPath string) int {
 	//panic("implement me")
 	return 0
 }
 
-func (w *WebSoocketTransport) Destroy() {
+func (w *WebSoocketsTransport) Destroy() {
 	//panic("implement me")
 }
 
-func (w *WebSoocketTransport) GetApiCompatibility() int {
-	//panic("implement me")
-	return 0
-}
-
-func (w *WebSoocketTransport) GetVersion() int {
+func (w *WebSoocketsTransport) GetApiCompatibility() int {
 	//panic("implement me")
 	return 0
 }
 
-func (w *WebSoocketTransport) GetVersionString() string {
+func (w *WebSoocketsTransport) GetVersion() int {
+	//panic("implement me")
+	return 0
+}
+
+func (w *WebSoocketsTransport) GetVersionString() string {
 	//panic("implement me")
 	return ""
 }
 
-func (w *WebSoocketTransport) GetDescription() string {
+func (w *WebSoocketsTransport) GetDescription() string {
 	//panic("implement me")
 	return ""
 }
 
-func (w *WebSoocketTransport) GetName() string {
+func (w *WebSoocketsTransport) GetName() string {
 	//panic("implement me")
 	return ""
 }
 
-func (w *WebSoocketTransport) GetAuthor() string {
+func (w *WebSoocketsTransport) GetAuthor() string {
 	//panic("implement me")
 	return ""
 }
 
-func (w *WebSoocketTransport) GetPackage() string {
+func (w *WebSoocketsTransport) GetPackage() string {
 	//panic("implement me")
 	return ""
 }
 
-func (w *WebSoocketTransport) IsJanusApiEnabled() bool {
+func (w *WebSoocketsTransport) IsJanusApiEnabled() bool {
 	//panic("implement me")
 	return false
 }
 
-func (w *WebSoocketTransport) IsAdminApiEnabled() bool {
+func (w *WebSoocketsTransport) IsAdminApiEnabled() bool {
 	//panic("implement me")
 	return false
 }
 
-func (w *WebSoocketTransport) SendMessagee(transport *JanusTransportSession, requestId JanusTransport, admin bool, message map[string]interface{}) int {
+func (w *WebSoocketsTransport) SendMessagee(transport *JanusTransportSession, requestId JanusTransport, admin bool, message map[string]interface{}) int {
 	//panic("implement me")
 	return 0
 }
 
-func (w *WebSoocketTransport) SessionCreated(transport *JanusTransportSession, sessionId uint64) {
+func (w *WebSoocketsTransport) SessionCreated(transport *JanusTransportSession, sessionId uint64) {
 	//panic("implement me")
 }
 
-func (w *WebSoocketTransport) SessionOver(transport *JanusTransportSession, sessionId uint64, isTimeout bool, claimed bool) {
+func (w *WebSoocketsTransport) SessionOver(transport *JanusTransportSession, sessionId uint64, isTimeout bool, claimed bool) {
 	//panic("implement me")
 }
 
-func (w *WebSoocketTransport) SessionClaimed(transport *JanusTransportSession, sessionid uint64) {
+func (w *WebSoocketsTransport) SessionClaimed(transport *JanusTransportSession, sessionid uint64) {
 	//panic("implement me")
+}
+
+func NewWebsocketTransport() *WebSoocketsTransport {
+	w := WebSoocketsTransport{}
+	return &w
+}
+
+type JanusWebsocketsTransportSession struct {
+	JanusTransportSession
+	IncomingBuf []byte
+	OutBuf []byte
 }

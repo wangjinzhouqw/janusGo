@@ -1,5 +1,7 @@
 package janusCore
 
+import "sync"
+
 type JanusTransportCallbacks interface {
 	IncomingRequest(plugin *JanusTransport, transport *JanusTransportSession, requestId interface{},admin bool,message map[string]interface{},err interface{})
 	TransportGone(plugin *JanusTransport, transport *JanusTransportSession)
@@ -31,3 +33,14 @@ type JanusTransport interface {
 	SessionOver(transport *JanusTransportSession,sessionId uint64,isTimeout bool,claimed bool)
 	SessionClaimed(transport *JanusTransportSession,sessionid uint64)
 }
+
+type JanusTransportSession struct {
+	Transport *JanusTransportSession
+	destroyed bool
+	mu sync.Mutex
+}
+
+func NewJanusTransportSession(transport *JanusTransportSession) *JanusTransportSession {
+	return &JanusTransportSession{Transport: transport}
+}
+

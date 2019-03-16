@@ -2,11 +2,6 @@ package janusCore
 
 import "sync"
 
-type JanusTransportSession struct {
-	Transport interface{}
-	destroyed bool
-	mu sync.Mutex
-}
 type JanusIceHandle struct {
 
 }
