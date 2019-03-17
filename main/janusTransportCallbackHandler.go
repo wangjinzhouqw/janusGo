@@ -6,15 +6,15 @@ type JanusTransportCallbackHandler struct {
 
 }
 
-func (h *JanusTransportCallbackHandler) IncomingRequest(plugin *janusCore.JanusTransport, transport *janusCore.JanusTransportSession, requestId interface{},admin bool,message map[string]interface{},err interface{}) {
+func (h *JanusTransportCallbackHandler) IncomingRequest(plugin janusCore.JanusTransport, ts interface{}, requestId interface{}, admin bool, message map[string]interface{}, err interface{}) {
+	//panic("implement me")
+}
+
+func (h *JanusTransportCallbackHandler) TransportGone(plugin janusCore.JanusTransport, ts interface{}) {
 
 }
 
-func (h *JanusTransportCallbackHandler) TransportGone(plugin *janusCore.JanusTransport, transport *janusCore.JanusTransportSession) {
-
-}
-
-func (h *JanusTransportCallbackHandler) IsApiSecretNeeded(plugin *janusCore.JanusTransport) bool {
+func (h *JanusTransportCallbackHandler) IsApiSecretNeeded(plugin janusCore.JanusTransport) bool {
 	return false
 }
 

@@ -2,10 +2,12 @@ package janusCore
 
 import "sync"
 
+const JANUS_TRANSPORT_API_VERSION = 7
+
 type JanusTransportCallbacks interface {
-	IncomingRequest(plugin *JanusTransport, transport *JanusTransportSession, requestId interface{},admin bool,message map[string]interface{},err interface{})
-	TransportGone(plugin *JanusTransport, transport *JanusTransportSession)
-	IsApiSecretNeeded(plugin *JanusTransport) bool
+	IncomingRequest(plugin JanusTransport, ts interface{}, requestId interface{},admin bool,message map[string]interface{},err interface{})
+	TransportGone(plugin JanusTransport, ts interface{})
+	IsApiSecretNeeded(plugin JanusTransport) bool
 	IsApiSecretValid(plugin JanusTransport,apisecret string) bool
 	IsAuthTokenNeeded(plugin JanusTransport) bool
 	IaAuthTokenValid(plugin JanusTransport, token string) bool
@@ -28,16 +30,16 @@ type JanusTransport interface {
 	IsJanusApiEnabled() bool
 	IsAdminApiEnabled() bool
 
-	SendMessagee(transport *JanusTransportSession,requestId JanusTransport,admin bool,message map[string]interface{}) int
-	SessionCreated(transport *JanusTransportSession,sessionId uint64)
-	SessionOver(transport *JanusTransportSession,sessionId uint64,isTimeout bool,claimed bool)
-	SessionClaimed(transport *JanusTransportSession,sessionid uint64)
+	SendMessagee(ts interface{},requestId JanusTransport,admin bool,message map[string]interface{}) int
+	SessionCreated(ts interface{},sessionId uint64)
+	SessionOver(ts interface{},sessionId uint64,isTimeout bool,claimed bool)
+	SessionClaimed(ts interface{},sessionid uint64)
 }
 
 type JanusTransportSession struct {
-	Transport *JanusTransportSession
-	destroyed bool
-	mu sync.Mutex
+	Transport interface{}
+	Destroyed bool
+	Mu sync.Mutex
 }
 
 func NewJanusTransportSession(transport *JanusTransportSession) *JanusTransportSession {

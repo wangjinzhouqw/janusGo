@@ -3,10 +3,13 @@ package main
 import (
 	"container/list"
 	"flag"
+	"fmt"
+	"golang.org/x/net/websocket"
 	"janusGo/janusCore"
+	"log"
+	"net/http"
 	"time"
 )
-
 
 type JanusParam struct {
 	help bool
@@ -48,8 +51,6 @@ type JanusParam struct {
 	token_auth_secret string
 	event_handlers bool
 }
-
-
 
 type JanusRunVar struct {
 	sessions map[uint64]janusCore.JanusSession
@@ -171,10 +172,34 @@ func JanusTransportTask(){
 
 }
 
+func echo(conn *websocket.Conn){
+	fmt.Println("websocket start")
+	for {
+		var replay string
+		if err := websocket.Message.Receive(conn,&replay); err!=nil{
+
+		}
+
+		msg := "received : " + replay
+		fmt.Println(msg)
+
+		if err:=websocket.Message.Send(conn,msg);err!=nil {
+
+		}
+	}
+	fmt.Println("websocket end")
+}
+
+func janusLearn() {
+	http.Handle("/test",websocket.Handler(echo))
+	log.Fatal(http.ListenAndServe(":8080",nil))
+}
+
 func LoadJanusTransport() int{
 	janusRunVar.janusTransportCallbackhandler = NewJanusTransportCallbackHandler()
 	janusRunVar.websocketTransport = janusCore.NewWebsocketTransport()
 	janusRunVar.websocketTransport.Init(janusRunVar.janusTransportCallbackhandler,janusParam.config_file)
+	janusRunVar.transports = make(map[string]janusCore.JanusTransport,1)
 	janusRunVar.transports[janusRunVar.websocketTransport.GetPackage()] = janusRunVar.websocketTransport
 	return 0
 }
@@ -192,6 +217,9 @@ func main()  {
 	JanusTransportRequests()
 	JanusTransportTask()
 	LoadJanusTransport()
+
+
+	go janusLearn()
 
 	go WatchDogCheck()
 	ach := make(chan int,1)

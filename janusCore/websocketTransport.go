@@ -1,5 +1,15 @@
 package janusCore
 
+import (
+	"encoding/json"
+	"fmt"
+	"golang.org/x/net/websocket"
+	"io"
+	"log"
+	"net/http"
+	"reflect"
+)
+
 const (
 	VERSION  = 1
 	VERSION_STRING = "0.0.1"
@@ -13,75 +23,135 @@ type WebSoocketsTransport struct {
 	gateway JanusTransportCallbacks
 }
 
+func (w *WebSoocketsTransport)handleFunc(conn *websocket.Conn) {
+	fmt.Println("conn:",conn)
+	ts := NewJanusWebsocketsTransportSession(conn)
+	defer conn.Close()
+	for {
+		msg := make([]byte,2048)
+		n,err := conn.Read(msg)
+		if err == io.EOF { // conn disconnect
+			fmt.Println("close",conn)
+			conn.Close()
+			break
+		}
+
+		if err!=nil {
+			log.Fatal(err)
+		}
+
+		content := msg[:n]
+		fmt.Println(content)
+		var m map[string]interface{}
+		e := json.Unmarshal(content,&m)
+		if e!= nil{
+			log.Fatal(e)
+		}
+		fmt.Println(m)
+		w.gateway.IncomingRequest(w,ts,nil,false,m,nil)
+	}
+}
+
+func (w *WebSoocketsTransport)handleAdminFunc(conn *websocket.Conn) {
+	fmt.Println("conn admin:",conn)
+	ts := NewJanusWebsocketsTransportSession(conn)
+	defer conn.Close()
+	for {
+		msg := make([]byte,2048)
+		n,err := conn.Read(msg)
+		if err == io.EOF { // conn disconnect
+			fmt.Println("close",conn)
+			conn.Close()
+			break
+		}
+
+		if err!=nil {
+			log.Fatal(err)
+		}
+
+		content := msg[:n]
+		fmt.Println(content)
+		var m map[string]interface{}
+		e := json.Unmarshal(content,&m)
+		if e!= nil{
+			log.Fatal(e)
+		}
+		fmt.Println(m)
+		w.gateway.IncomingRequest(w,ts,nil,true,m,nil)
+	}
+}
+
 func (w *WebSoocketsTransport) Init(callback JanusTransportCallbacks, configPath string) int {
-	//panic("implement me")
+	w.gateway = callback
+	muxServer := http.NewServeMux()
+	muxServer.Handle("/",websocket.Handler(w.handleFunc))
+	go http.ListenAndServe(":8188",muxServer)
+	muxServerAdmin := http.NewServeMux()
+	muxServerAdmin.Handle("/",websocket.Handler(w.handleAdminFunc))
+	go http.ListenAndServe(":7188",muxServerAdmin)
 	return 0
 }
 
 func (w *WebSoocketsTransport) Destroy() {
-	//panic("implement me")
+	//
 }
 
 func (w *WebSoocketsTransport) GetApiCompatibility() int {
-	//panic("implement me")
-	return 0
+	return JANUS_TRANSPORT_API_VERSION
 }
 
 func (w *WebSoocketsTransport) GetVersion() int {
-	//panic("implement me")
-	return 0
+	return VERSION
 }
 
 func (w *WebSoocketsTransport) GetVersionString() string {
-	//panic("implement me")
-	return ""
+	return VERSION_STRING
 }
 
 func (w *WebSoocketsTransport) GetDescription() string {
-	//panic("implement me")
-	return ""
+	return DESCRIPTION
 }
 
 func (w *WebSoocketsTransport) GetName() string {
-	//panic("implement me")
-	return ""
+	return NAME
 }
 
 func (w *WebSoocketsTransport) GetAuthor() string {
-	//panic("implement me")
-	return ""
+	return AUTHOR
 }
 
 func (w *WebSoocketsTransport) GetPackage() string {
-	//panic("implement me")
-	return ""
+	return PACKAGE
 }
 
 func (w *WebSoocketsTransport) IsJanusApiEnabled() bool {
-	//panic("implement me")
-	return false
+	return true
 }
 
 func (w *WebSoocketsTransport) IsAdminApiEnabled() bool {
-	//panic("implement me")
-	return false
+	return true
 }
 
-func (w *WebSoocketsTransport) SendMessagee(transport *JanusTransportSession, requestId JanusTransport, admin bool, message map[string]interface{}) int {
-	//panic("implement me")
+func (w *WebSoocketsTransport) SendMessagee(ts interface{}, requestId JanusTransport, admin bool, message map[string]interface{}) int {
+	jwts,ok := ts.(JanusWebsocketsTransportSession)
+	if !ok {
+		fmt.Errorf("%s",reflect.TypeOf(ts).String())
+	}
+
+	fmt.Println(jwts.Destroyed)
 	return 0
 }
 
-func (w *WebSoocketsTransport) SessionCreated(transport *JanusTransportSession, sessionId uint64) {
-	//panic("implement me")
+func (w *WebSoocketsTransport) SessionCreated(ts interface{}, sessionId uint64) {
+	// don't care
 }
 
-func (w *WebSoocketsTransport) SessionOver(transport *JanusTransportSession, sessionId uint64, isTimeout bool, claimed bool) {
-	//panic("implement me")
+func (w *WebSoocketsTransport) SessionOver(ts interface{}, sessionId uint64, isTimeout bool, claimed bool) {
+	// don't care
 }
 
-func (w *WebSoocketsTransport) SessionClaimed(transport *JanusTransportSession, sessionid uint64) {
-	//panic("implement me")
+func (w *WebSoocketsTransport) SessionClaimed(ts interface{}, sessionid uint64) {
+	// don't care
 }
 
 func NewWebsocketTransport() *WebSoocketsTransport {
@@ -93,4 +163,11 @@ type JanusWebsocketsTransportSession struct {
 	JanusTransportSession
 	IncomingBuf []byte
 	OutBuf []byte
+	conn *websocket.Conn
 }
+
+func NewJanusWebsocketsTransportSession(conn *websocket.Conn) *JanusWebsocketsTransportSession {
+	return &JanusWebsocketsTransportSession{conn: conn}
+}
+
+
