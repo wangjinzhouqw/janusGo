@@ -36,6 +36,8 @@ func (w *WebSoocketsTransport)handleFunc(conn *websocket.Conn) {
 			break
 		}
 
+		fmt.Println(n)
+
 		if err!=nil {
 			log.Fatal(err)
 		}
@@ -48,6 +50,7 @@ func (w *WebSoocketsTransport)handleFunc(conn *websocket.Conn) {
 			log.Fatal(e)
 		}
 		fmt.Println(m)
+		conn.Write(content)
 		w.gateway.IncomingRequest(w,ts,nil,false,m,nil)
 	}
 }
@@ -133,7 +136,7 @@ func (w *WebSoocketsTransport) IsAdminApiEnabled() bool {
 }
 
 func (w *WebSoocketsTransport) SendMessagee(ts interface{}, requestId JanusTransport, admin bool, message map[string]interface{}) int {
-	jwts,ok := ts.(JanusWebsocketsTransportSession)
+	jwts,ok := ts.(*JanusWebsocketsTransportSession)
 	if !ok {
 		fmt.Errorf("%s",reflect.TypeOf(ts).String())
 	}
