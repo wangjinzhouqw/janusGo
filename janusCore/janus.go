@@ -7,12 +7,18 @@ type JanusIceHandle struct {
 }
 
 type JanusReuest struct {
-	Transport *JanusTransport
-	Instance *JanusTransportSession
+	Transport JanusTransport
+	Instance interface{}
 	RequestId *JanusReuest
 	Admin bool
 	Message map[string]interface{}
 }
+
+func NewJanusReuest(transport JanusTransport, instance interface{}, requestId *JanusReuest, admin bool, message map[string]interface{}) *JanusReuest {
+	return &JanusReuest{Transport: transport, Instance: instance, RequestId: requestId, Admin: admin, Message: message}
+}
+
+
 
 type JanusSession struct {
 	SessionId uint64
@@ -23,5 +29,9 @@ type JanusSession struct {
 	TransportGone int64
 	Mu sync.Mutex
 	Destroyed int64
+}
+
+func NewJanusSession(sessionId uint64) *JanusSession {
+	return &JanusSession{SessionId: sessionId}
 }
 

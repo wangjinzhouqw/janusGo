@@ -7,7 +7,9 @@ type JanusTransportCallbackHandler struct {
 }
 
 func (h *JanusTransportCallbackHandler) IncomingRequest(plugin janusCore.JanusTransport, ts interface{}, requestId interface{}, admin bool, message map[string]interface{}, err interface{}) {
-	//panic("implement me")
+	request := janusCore.NewJanusReuest(plugin,ts,nil,admin,message)
+	janusRunVar.requests.PushBack(request)
+	janusRunVar.requestChan <- 1
 }
 
 func (h *JanusTransportCallbackHandler) TransportGone(plugin janusCore.JanusTransport, ts interface{}) {

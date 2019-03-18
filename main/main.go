@@ -2,11 +2,13 @@ package main
 
 import (
 	"container/list"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"golang.org/x/net/websocket"
 	"janusGo/janusCore"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -53,12 +55,13 @@ type JanusParam struct {
 }
 
 type JanusRunVar struct {
-	sessions map[uint64]janusCore.JanusSession
-	requests list.List
-	transports map[string]janusCore.JanusTransport
-	transports_so map[string]interface{} //open so file handler
+	sessions                      map[uint64]interface{}
+	requests                      list.List
+	transports                    map[string]janusCore.JanusTransport
+	transports_so                 map[string]interface{} //open so file handler
 	janusTransportCallbackhandler *JanusTransportCallbackHandler
-	websocketTransport *janusCore.WebSoocketsTransport
+	websocketTransport            *janusCore.WebSoocketsTransport
+	requestChan                   chan int
 }
 
 var (
@@ -165,11 +168,45 @@ func DaemonizeRun(){
 
 //gorontine will dispatch incoming requests
 func JanusTransportRequests(){
-	
+	janusRunVar.requestChan = make(chan int,1)
 }
 
 func JanusTransportTask(){
+	for  {
+		select {
+		case <-janusRunVar.requestChan:
+			req := janusRunVar.requests.Front().Value
+			if reqestValue,ok := req.(janusCore.JanusReuest); ok{
+				janusText := reqestValue.Message["janus"]
+				if janusText=="create" {
+					janusSessionId := rand.Uint64()
+					janusSession := janusCore.NewJanusSession(janusSessionId)
+					janusRunVar.sessions[janusSessionId] = janusSession
+					var retRes = struct {
+						Janus       string `json:"janus"`
+						Transaction string `json:"transaction"`
+						Data        struct {
+							Id uint64 `json:"id"`
+						} `json:"data"`
+					}{Janus: "success", Transaction: reqestValue.Message["transaction"].(string), Data: struct{ Id uint64 `json:"id"`}{Id: 1}}
+					jsonStr,err := json.Marshal(retRes)
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+					var m map[string]interface{}
+					err = json.Unmarshal([]byte(jsonStr),&m)
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+					reqestValue.Transport.SendMessagee(reqestValue.Instance,nil,reqestValue.Admin,m)
+				} else if janusText == "attach"{
 
+				} else if janusText == "ping" {
+
+				}
+			}
+		}
+	}
 }
 
 func echo(conn *websocket.Conn){
@@ -188,6 +225,12 @@ func echo(conn *websocket.Conn){
 		}
 	}
 	fmt.Println("websocket end")
+}
+
+func janusTransportRequestProcessor() {
+	select {
+
+	}
 }
 
 func janusLearn() {

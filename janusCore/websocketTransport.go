@@ -137,7 +137,11 @@ func (w *WebSoocketsTransport) SendMessagee(ts interface{}, requestId JanusTrans
 	if !ok {
 		fmt.Errorf("%s",reflect.TypeOf(ts).String())
 	}
-
+	jsonStr,err := json.Marshal(message)
+	if err!= nil {
+		fmt.Println(err.Error())
+	}
+	jwts.conn.Write([]byte(jsonStr))
 	fmt.Println(jwts.Destroyed)
 	return 0
 }
