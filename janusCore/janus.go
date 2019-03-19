@@ -3,7 +3,13 @@ package janusCore
 import "sync"
 
 type JanusIceHandle struct {
+	HandleId uint64
+	App interface{}
+	AppHandle interface{}
+}
 
+func NewJanusIceHandle() *JanusIceHandle {
+	return &JanusIceHandle{}
 }
 
 type JanusReuest struct {
@@ -22,7 +28,7 @@ func NewJanusReuest(transport JanusTransport, instance interface{}, requestId *J
 
 type JanusSession struct {
 	SessionId uint64
-	IceHandlers map[uint64]JanusIceHandle
+	IceHandlers map[uint64]interface{}
 	LastActivity int64
 	Source JanusReuest
 	timeout int64

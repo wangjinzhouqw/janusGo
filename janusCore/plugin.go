@@ -18,15 +18,19 @@ type JanusPluginSession struct {
 	Stopped bool // session stop
 }
 
+func NewJanusPluginSession(gatewayhandle interface{}) *JanusPluginSession {
+	return &JanusPluginSession{Gatewayhandle: gatewayhandle}
+}
+
 type JanusCallbacks interface {
-	PushEvent(handle JanusPluginSession,plugin JanusPlugin,transaction string,message map[string]interface{},jsep map[string]interface{})
-	RelayRtp(handle JanusPluginSession,video int,buf []byte,len int)
-	RelayRtcp(handle JanusPluginSession,video int,buf []byte,len int)
-	RelayData(handle JanusPluginSession,buf []byte,len int)
-	ClosePC(handle JanusPluginSession)
-	EndSession(handle JanusPluginSession)
+	PushEvent(handle interface{},plugin JanusPlugin,transaction string,message map[string]interface{},jsep map[string]interface{})
+	RelayRtp(handle interface{},video int,buf []byte,len int)
+	RelayRtcp(handle interface{},video int,buf []byte,len int)
+	RelayData(handle interface{},buf []byte,len int)
+	ClosePC(handle interface{})
+	EndSession(handle interface{})
 	EventsIsEnabled() bool
-	NotifyEvent(plugin JanusPlugin,handle JanusPluginSession,event map[string]interface{})
+	NotifyEvent(plugin JanusPlugin,handle interface{},event map[string]interface{})
 	AuthIsSignatureValid(plugin JanusPlugin,token string)
 	AuthSignatureContains(plugin JanusPlugin,token string,descriptor string)
 }
@@ -43,14 +47,14 @@ type JanusPlugin interface {
 	GetAuthor() string
 	GetPackage() string
 
-	CreateSession(handle JanusPluginSession,err *error)
-	HandleMessage(handle JanusPluginSession,transaction string,message map[string]interface{},jsep map[string]interface{}) JanusPluginResult
-	SetupMedia(handle JanusPluginSession)
-	IncomingRtp(handle JanusPluginSession,video int,buf []byte,len int)
-	IncomingRtcp(handle JanusPluginSession,video int,buf []byte,len int)
-	IncomingData(handle JanusPluginSession,buf []byte,len int)
-	SlowLink(handle JanusPluginSession,uplink int,video int)
-	HangupMedia(handle JanusPluginSession)
-	DestroySession(handle JanusPluginSession,err *error)
-	QuerySession(handle JanusPluginSession)
+	CreateSession(handle interface{},err *error)
+	HandleMessage(handle interface{},transaction string,message map[string]interface{},jsep map[string]interface{}) JanusPluginResult
+	SetupMedia(handle interface{})
+	IncomingRtp(handle interface{},video int,buf []byte,len int)
+	IncomingRtcp(handle interface{},video int,buf []byte,len int)
+	IncomingData(handle interface{},buf []byte,len int)
+	SlowLink(handle interface{},uplink int,video int)
+	HangupMedia(handle interface{})
+	DestroySession(handle interface{},err *error)
+	QuerySession(handle interface{})
 }

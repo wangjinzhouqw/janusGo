@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/list"
+	"encoding/binary"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -57,11 +58,12 @@ type JanusParam struct {
 type JanusRunVar struct {
 	sessions                      map[uint64]interface{}
 	requests                      list.List
-	transports                    map[string]janusCore.JanusTransport
+	transports                    map[string]interface{}
 	transports_so                 map[string]interface{} //open so file handler
 	janusTransportCallbackhandler *JanusTransportCallbackHandler
-	websocketTransport            *janusCore.WebSoocketsTransport
+	janusCallbackhandler janusCore.JanusCallbacks
 	requestChan                   chan int
+	plugins 					map[string]interface{}
 }
 
 var (
@@ -168,8 +170,15 @@ func DaemonizeRun(){
 
 //gorontine will dispatch incoming requests
 func JanusTransportRequests(){
-	janusRunVar.requestChan = make(chan int,1)
-	janusRunVar.sessions = make(map[uint64]interface{})
+	janusRunVar = JanusRunVar{
+		requestChan : make(chan int,1),
+		sessions : make(map[uint64]interface{}),
+		plugins:make(map[string]interface{}),
+		transports:make(map[string]interface{}),
+		transports_so:make(map[string]interface{}),
+		janusCallbackhandler:NewJanusCallbacksHandler(),
+		janusTransportCallbackhandler:NewJanusTransportCallbackHandler(),
+	}
 }
 
 
@@ -197,19 +206,24 @@ func janusTransportRequestProcessor() {
 		case <-janusRunVar.requestChan:
 			fmt.Println("requestChan read")
 			req := janusRunVar.requests.Front().Value
+			janusRunVar.requests.Remove(janusRunVar.requests.Front())
 			if reqestValue,ok := req.(*janusCore.JanusReuest); ok{
 				janusText := reqestValue.Message["janus"]
 				if janusText=="create" {
 					janusSessionId := rand.Uint64()
 					janusSession := janusCore.NewJanusSession(janusSessionId)
 					janusRunVar.sessions[janusSessionId] = janusSession
+					fmt.Println("sessionId1,",janusSessionId)
+
+					b:=make([]byte,8)
+					binary.BigEndian.PutUint64(b,janusSessionId)
 					var retRes = struct {
 						Janus       string `json:"janus"`
 						Transaction string `json:"transaction"`
 						Data        struct {
-							Id uint64 `json:"id"`
+							Id []byte `json:"id"`
 						} `json:"data"`
-					}{Janus: "success", Transaction: reqestValue.Message["transaction"].(string), Data: struct{ Id uint64 `json:"id"`}{Id: janusSessionId}}
+					}{Janus: "success", Transaction: reqestValue.Message["transaction"].(string), Data: struct{ Id []byte `json:"id"`}{Id: b}}
 					jsonStr,err := json.Marshal(retRes)
 					if err != nil {
 						fmt.Println(err.Error())
@@ -219,9 +233,49 @@ func janusTransportRequestProcessor() {
 					if err != nil {
 						fmt.Println(err.Error())
 					}
+					fmt.Println(m)
 					reqestValue.Transport.SendMessagee(reqestValue.Instance,nil,reqestValue.Admin,m)
 				} else if janusText == "attach"{
+					b,ok1 := reqestValue.Message["session_id"]
+					if ok1{
+						fmt.Println(ok1,b)
+					}
+					sessionId := binary.BigEndian.Uint64([]byte(b.(string)))
+					fmt.Println("sessionId2,",sessionId)
+					janusSession,ok := janusRunVar.sessions[sessionId].(*janusCore.JanusSession)
+					if !ok{
+						janusSession = nil
+						fmt.Println("sessionid:",sessionId,"can't find")
+					}
+					janusSession.LastActivity = time.Now().UnixNano()
 
+					pluginText := reqestValue.Message["plugin"].(string)
+					plugin := janusRunVar.plugins[pluginText].(janusCore.JanusPlugin)
+
+					ih := janusCore.NewJanusIceHandle()
+					janusSession.IceHandlers[ih.HandleId] = ih
+
+					jps := janusCore.NewJanusPluginSession(ih)
+					plugin.CreateSession(jps,nil)
+					ih.App = plugin
+					ih.AppHandle = jps
+
+					var retRes = struct {
+						Janus string`json:"janus"`
+						SessionId uint64`json:"session_id"`
+						Transaction string`json:"transaction"`
+						Data struct{Id uint64`json:"id"`}`json:"data"`
+					}{Janus:"success",Transaction: reqestValue.Message["transaction"].(string),SessionId:sessionId,Data: struct{ Id uint64`json:"id"` }{Id:ih.HandleId }}
+					jsonStr,err := json.Marshal(retRes)
+					if err!=nil{
+						fmt.Println(err.Error())
+					}
+					var m map[string]interface{}
+					err = json.Unmarshal([]byte(jsonStr),&m)
+					if err!=nil{
+						fmt.Println(err.Error())
+					}
+					reqestValue.Transport.SendMessagee(reqestValue.Instance,nil,reqestValue.Admin,m)
 				} else if janusText == "ping" {
 
 				}
@@ -236,11 +290,16 @@ func janusLearn() {
 }
 
 func LoadJanusTransport() int{
-	janusRunVar.janusTransportCallbackhandler = NewJanusTransportCallbackHandler()
-	janusRunVar.websocketTransport = janusCore.NewWebsocketTransport()
-	janusRunVar.websocketTransport.Init(janusRunVar.janusTransportCallbackhandler,janusParam.config_file)
-	janusRunVar.transports = make(map[string]janusCore.JanusTransport,1)
-	janusRunVar.transports[janusRunVar.websocketTransport.GetPackage()] = janusRunVar.websocketTransport
+	wt := janusCore.NewWebsocketTransport()
+	wt.Init(janusRunVar.janusTransportCallbackhandler,janusParam.config_file)
+	janusRunVar.transports[wt.GetPackage()] = wt
+	return 0
+}
+
+func LoadJanusPlugin() int {
+	jep := janusCore.NewEchoPlugin()
+	jep.Init(janusRunVar.janusCallbackhandler,"./config")
+	janusRunVar.plugins[jep.GetPackage()] = jep
 	return 0
 }
 
