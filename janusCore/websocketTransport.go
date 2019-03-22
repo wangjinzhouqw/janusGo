@@ -1,6 +1,7 @@
 package janusCore
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"golang.org/x/net/websocket"
@@ -45,12 +46,13 @@ func (w *WebSoocketsTransport)handleFunc(conn *websocket.Conn) {
 		content := msg[:n]
 		fmt.Println(content)
 		var m map[string]interface{}
-		e := json.Unmarshal(content,&m)
-		if e!= nil{
-			log.Fatal(e)
-		}
+		//e := json.Unmarshal(content,&m)
+		dec := json.NewDecoder(bytes.NewBuffer(content))
+		dec.UseNumber()
+		dec.Decode(&m)
+
 		fmt.Println(m)
-		conn.Write(content)
+		//conn.Write(content)
 		w.gateway.IncomingRequest(w,ts,nil,false,m,nil)
 	}
 }
@@ -75,10 +77,13 @@ func (w *WebSoocketsTransport)handleAdminFunc(conn *websocket.Conn) {
 		content := msg[:n]
 		fmt.Println(content)
 		var m map[string]interface{}
-		e := json.Unmarshal(content,&m)
-		if e!= nil{
-			log.Fatal(e)
-		}
+		dec := json.NewDecoder(bytes.NewBuffer(content))
+		dec.UseNumber()
+		dec.Decode(&m)
+		//e := json.Unmarshal(content,&m)
+		//if e!= nil{
+		//	log.Fatal(e)
+		//}
 		fmt.Println(m)
 		w.gateway.IncomingRequest(w,ts,nil,true,m,nil)
 	}
@@ -135,17 +140,13 @@ func (w *WebSoocketsTransport) IsAdminApiEnabled() bool {
 	return true
 }
 
-func (w *WebSoocketsTransport) SendMessagee(ts interface{}, requestId JanusTransport, admin bool, message map[string]interface{}) int {
+func (w *WebSoocketsTransport) SendMessagee(ts interface{}, requestId JanusTransport, admin bool, message []byte) int {
 	jwts,ok := ts.(*JanusWebsocketsTransportSession)
 	if !ok {
 		fmt.Errorf("%s",reflect.TypeOf(ts).String())
 	}
-	jsonStr,err := json.Marshal(message)
-	if err!= nil {
-		fmt.Println(err.Error())
-	}
-	jwts.conn.Write([]byte(jsonStr))
-	fmt.Println(jwts.Destroyed)
+	jwts.conn.Write([]byte(message))
+	//fmt.Println(jwts.Destroyed)
 	return 0
 }
 

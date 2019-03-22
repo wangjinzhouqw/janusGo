@@ -5,6 +5,7 @@ const (
 	JANUS_PLUGIN_OK = iota
 	JANUS_PLUGIN_OK_WAIT
 	)
+const JANUS_PLUGIN_API_VERSION  = 10
 
 type JanusPluginResult struct {
 	ResultType int
@@ -13,13 +14,13 @@ type JanusPluginResult struct {
 }
 
 type JanusPluginSession struct {
-	Gatewayhandle interface{} // JanusIceHandle
-	PluginHandle interface{} //plugin session instance
+	JanusIcehandler interface{} // JanusIceHandle
+	SpecPluginSessionHandler interface{} //plugin session instance
 	Stopped bool // session stop
 }
 
-func NewJanusPluginSession(gatewayhandle interface{}) *JanusPluginSession {
-	return &JanusPluginSession{Gatewayhandle: gatewayhandle}
+func NewJanusPluginSession(janusIceHandler interface{}) *JanusPluginSession {
+	return &JanusPluginSession{JanusIcehandler: janusIceHandler}
 }
 
 type JanusCallbacks interface {
@@ -47,14 +48,14 @@ type JanusPlugin interface {
 	GetAuthor() string
 	GetPackage() string
 
-	CreateSession(handle interface{},err *error)
-	HandleMessage(handle interface{},transaction string,message map[string]interface{},jsep map[string]interface{}) JanusPluginResult
-	SetupMedia(handle interface{})
-	IncomingRtp(handle interface{},video int,buf []byte,len int)
-	IncomingRtcp(handle interface{},video int,buf []byte,len int)
-	IncomingData(handle interface{},buf []byte,len int)
-	SlowLink(handle interface{},uplink int,video int)
-	HangupMedia(handle interface{})
-	DestroySession(handle interface{},err *error)
-	QuerySession(handle interface{})
+	CreateSession(janusPluginSession interface{},err *error)
+	HandleMessage(janusPluginSession interface{},transaction string,message map[string]interface{},jsep map[string]interface{}) JanusPluginResult
+	SetupMedia(janusPluginSession interface{})
+	IncomingRtp(janusPluginSession interface{},video int,buf []byte,len int)
+	IncomingRtcp(janusPluginSession interface{},video int,buf []byte,len int)
+	IncomingData(janusPluginSession interface{},buf []byte,len int)
+	SlowLink(janusPluginSession interface{},uplink int,video int)
+	HangupMedia(janusPluginSession interface{})
+	DestroySession(janusPluginSession interface{},err *error)
+	QuerySession(janusPluginSession interface{})
 }

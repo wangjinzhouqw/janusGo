@@ -1,15 +1,24 @@
 package janusCore
 
-import "sync"
+import (
+	"math/rand"
+	"strconv"
+	"sync"
+)
 
 type JanusIceHandle struct {
-	HandleId uint64
-	App interface{}
-	AppHandle interface{}
+	HandleId string
+	JanusSessionHander interface{}
+	JanusPluginHander interface{}
+	JanusPluginSessionHandler interface{}
 }
 
-func NewJanusIceHandle() *JanusIceHandle {
-	return &JanusIceHandle{}
+func NewJanusIceHandle(janusSessionHander interface{}) *JanusIceHandle {
+	jih := JanusIceHandle{
+		JanusSessionHander:janusSessionHander,
+		HandleId:strconv.FormatUint(rand.Uint64(),16),
+	}
+	return &jih
 }
 
 type JanusReuest struct {
@@ -27,8 +36,8 @@ func NewJanusReuest(transport JanusTransport, instance interface{}, requestId *J
 
 
 type JanusSession struct {
-	SessionId uint64
-	IceHandlers map[uint64]interface{}
+	SessionId string
+	IceHandlers map[string]interface{}
 	LastActivity int64
 	Source JanusReuest
 	timeout int64
@@ -37,7 +46,7 @@ type JanusSession struct {
 	Destroyed int64
 }
 
-func NewJanusSession(sessionId uint64) *JanusSession {
+func NewJanusSession(sessionId string) *JanusSession {
 	return &JanusSession{SessionId: sessionId}
 }
 

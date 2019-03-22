@@ -30,7 +30,7 @@ type JanusTransport interface {
 	IsJanusApiEnabled() bool
 	IsAdminApiEnabled() bool
 
-	SendMessagee(ts interface{},requestId JanusTransport,admin bool,message map[string]interface{}) int
+	SendMessagee(ts interface{},requestId JanusTransport,admin bool,message []byte) int
 	SessionCreated(ts interface{},sessionId uint64)
 	SessionOver(ts interface{},sessionId uint64,isTimeout bool,claimed bool)
 	SessionClaimed(ts interface{},sessionid uint64)

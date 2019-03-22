@@ -1,5 +1,10 @@
 package janusCore
 
+import (
+	"container/list"
+	"fmt"
+)
+
 const (
 	ECHO_PLUGIN_VERSION  = 7
 	ECHO_PLUGIN_VERSION_STRING = "0.0.7"
@@ -12,6 +17,7 @@ const (
 type EchoPlugin struct {
 	janusCallback JanusCallbacks
 	configPath string
+	SpecPluginSession list.List
 }
 
 func (e *EchoPlugin) Destroy() {
@@ -19,70 +25,88 @@ func (e *EchoPlugin) Destroy() {
 }
 
 func (e *EchoPlugin) GetApiCompatibility() int {
-	panic("implement me")
+	return JANUS_PLUGIN_API_VERSION
 }
 
 func (e *EchoPlugin) GetVersion() int {
-	panic("implement me")
+	return ECHO_PLUGIN_VERSION
 }
 
 func (e *EchoPlugin) GetVersionString() string {
-	panic("implement me")
+	return ECHO_PLUGIN_VERSION_STRING
 }
 
 func (e *EchoPlugin) GetDescription() string {
-	panic("implement me")
+	return ECHO_PLUGIN_DESCRIPTION
 }
 
 func (e *EchoPlugin) GetName() string {
-	panic("implement me")
+	return ECHO_PLUGIN_NAME
 }
 
 func (e *EchoPlugin) GetAuthor() string {
-	panic("implement me")
+	return ECHO_PLUGIN_AUTHOR
 }
 
 func (e *EchoPlugin) GetPackage() string {
+	return ECHO_PLUGIN_PACKAGE
+}
+
+func (e *EchoPlugin) CreateSession(janusPluginSession interface{}, err *error) {
+	jps,ok := janusPluginSession.(*JanusPluginSession)
+	if !ok {
+		fmt.Println("januspluginSession is error")
+	}
+
+	jps.SpecPluginSessionHandler = NewJanusEchoPluginSession(jps)
+	e.SpecPluginSession.PushBack(jps.SpecPluginSessionHandler)
+}
+
+func (e *EchoPlugin) HandleMessage(janusPluginSession interface{}, transaction string, message map[string]interface{}, jsep map[string]interface{}) JanusPluginResult {
+	jps,ok := janusPluginSession.(*JanusPluginSession)
+	if !ok {
+		fmt.Println("!ok")
+	}
+	sjps := jps.SpecPluginSessionHandler.(*JanusEchoPluginSession)
+	fmt.Println(sjps)
+
+	sdpType := jsep["type"]
+	sdp := jsep["sdp"]
+	simulcat := jsep["simulcast"]
+
+	fmt.Println(sdpType,sdp,simulcat)
+	return JanusPluginResult{}
+}
+
+func (e *EchoPlugin) SetupMedia(janusPluginSession interface{}) {
 	panic("implement me")
 }
 
-func (e *EchoPlugin) CreateSession(handle interface{}, err *error) {
+func (e *EchoPlugin) IncomingRtp(janusPluginSession interface{}, video int, buf []byte, len int) {
 	panic("implement me")
 }
 
-func (e *EchoPlugin) HandleMessage(handle interface{}, transaction string, message map[string]interface{}, jsep map[string]interface{}) JanusPluginResult {
+func (e *EchoPlugin) IncomingRtcp(janusPluginSession interface{}, video int, buf []byte, len int) {
 	panic("implement me")
 }
 
-func (e *EchoPlugin) SetupMedia(handle interface{}) {
+func (e *EchoPlugin) IncomingData(janusPluginSession interface{}, buf []byte, len int) {
 	panic("implement me")
 }
 
-func (e *EchoPlugin) IncomingRtp(handle interface{}, video int, buf []byte, len int) {
+func (e *EchoPlugin) SlowLink(janusPluginSession interface{}, uplink int, video int) {
 	panic("implement me")
 }
 
-func (e *EchoPlugin) IncomingRtcp(handle interface{}, video int, buf []byte, len int) {
+func (e *EchoPlugin) HangupMedia(janusPluginSession interface{}) {
 	panic("implement me")
 }
 
-func (e *EchoPlugin) IncomingData(handle interface{}, buf []byte, len int) {
+func (e *EchoPlugin) DestroySession(janusPluginSession interface{}, err *error) {
 	panic("implement me")
 }
 
-func (e *EchoPlugin) SlowLink(handle interface{}, uplink int, video int) {
-	panic("implement me")
-}
-
-func (e *EchoPlugin) HangupMedia(handle interface{}) {
-	panic("implement me")
-}
-
-func (e *EchoPlugin) DestroySession(handle interface{}, err *error) {
-	panic("implement me")
-}
-
-func (e *EchoPlugin) QuerySession(handle interface{}) {
+func (e *EchoPlugin) QuerySession(janusPluginSession interface{}) {
 	panic("implement me")
 }
 
@@ -97,8 +121,16 @@ func (e *EchoPlugin) Init(callbacks JanusCallbacks, configPath string) int {
 }
 
 type JanusEchoPluginSession struct {
-	JanusPluginSession
+	*JanusPluginSession
+	HasAudio bool
+	HasVideo bool
+	HasData bool
+	AudioActive bool
+	VideoActive bool
+}
 
+func NewJanusEchoPluginSession(janusPluginSession *JanusPluginSession) *JanusEchoPluginSession {
+	return &JanusEchoPluginSession{JanusPluginSession: janusPluginSession}
 }
 
 
