@@ -282,10 +282,20 @@ func janusTransportRequestProcessor() {
 						fmt.Println(ih)
 					}
 
-					body := req.Message["body"]
-					jsep := req.Message["jsep"]
-					fmt.Println(body)
-					fmt.Println(jsep)
+					body := req.Message["body"].(map[string]interface{})
+					jsepTmp,ok := req.Message["jsep"]
+					if !ok {
+						jsepTmp = nil;
+					}
+					var jsep map[string]interface{}
+					if jsepTmp!=nil {
+						jsep = jsepTmp.(map[string]interface{})
+					}
+					jp,ok2 := ih.JanusPluginHander.(janusCore.JanusPlugin)
+					if !ok2 {
+						fmt.Println("ih must contain janusplugin")
+					}
+					jp.HandleMessage(ih.JanusPluginSessionHandler,req.Message["transaction"].(string),body,jsep)
 				}
 			}
 		}

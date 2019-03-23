@@ -49,7 +49,7 @@ type JanusPlugin interface {
 	GetPackage() string
 
 	CreateSession(janusPluginSession interface{},err *error)
-	HandleMessage(janusPluginSession interface{},transaction string,message map[string]interface{},jsep map[string]interface{}) JanusPluginResult
+	HandleMessage(janusPluginSession interface{},transaction string,body map[string]interface{},jsep map[string]interface{}) JanusPluginResult
 	SetupMedia(janusPluginSession interface{})
 	IncomingRtp(janusPluginSession interface{},video int,buf []byte,len int)
 	IncomingRtcp(janusPluginSession interface{},video int,buf []byte,len int)

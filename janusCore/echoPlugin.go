@@ -62,7 +62,7 @@ func (e *EchoPlugin) CreateSession(janusPluginSession interface{}, err *error) {
 	e.SpecPluginSession.PushBack(jps.SpecPluginSessionHandler)
 }
 
-func (e *EchoPlugin) HandleMessage(janusPluginSession interface{}, transaction string, message map[string]interface{}, jsep map[string]interface{}) JanusPluginResult {
+func (e *EchoPlugin) HandleMessage(janusPluginSession interface{}, transaction string, body map[string]interface{}, jsep map[string]interface{}) JanusPluginResult {
 	jps,ok := janusPluginSession.(*JanusPluginSession)
 	if !ok {
 		fmt.Println("!ok")
@@ -70,11 +70,18 @@ func (e *EchoPlugin) HandleMessage(janusPluginSession interface{}, transaction s
 	sjps := jps.SpecPluginSessionHandler.(*JanusEchoPluginSession)
 	fmt.Println(sjps)
 
-	sdpType := jsep["type"]
-	sdp := jsep["sdp"]
-	simulcat := jsep["simulcast"]
+	if jsep!=nil{
+		sdpType := jsep["type"].(string)
+		sdp := jsep["sdp"]
+		simulcat := jsep["simulcast"]
+		fmt.Println("sdpType:",sdpType,sdp,simulcat)
+	}
 
-	fmt.Println(sdpType,sdp,simulcat)
+	audioEnable := body["audio"].(bool)
+	videoEnable := body["video"].(bool)
+	sjps.AudioActive = audioEnable
+	sjps.VideoActive = videoEnable
+
 	return JanusPluginResult{}
 }
 
