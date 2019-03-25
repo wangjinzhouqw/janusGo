@@ -228,7 +228,7 @@ func janusTransportRequestProcessor() {
 						fmt.Println("111",err.Error())
 					}
 
-					req.Transport.SendMessagee(req.Instance,nil, req.Admin,jsonStr)
+					req.Transport.SendMessagee(req.TransportSessionHandler,nil, req.Admin,jsonStr)
 				} else if janusText == "attach"{
 					sessionId,ok1 := req.Message["session_id"].(string)
 					if !ok1{
@@ -261,10 +261,8 @@ func janusTransportRequestProcessor() {
 					if err!=nil{
 						fmt.Println(err.Error())
 					}
-					req.Transport.SendMessagee(req.Instance,nil, req.Admin,jsonStr)
-				} else if janusText == "ping" {
-
-				} else if janusText == "message"{
+					req.Transport.SendMessagee(req.TransportSessionHandler,nil, req.Admin,jsonStr)
+				}else if janusText == "message"{
 					sessionId,ok1 := req.Message["session_id"].(string)
 					if !ok1{
 						fmt.Println(sessionId)
@@ -295,7 +293,76 @@ func janusTransportRequestProcessor() {
 					if !ok2 {
 						fmt.Println("ih must contain janusplugin")
 					}
-					jp.HandleMessage(ih.JanusPluginSessionHandler,req.Message["transaction"].(string),body,jsep)
+					jpResult := jp.HandleMessage(ih.JanusPluginSessionHandler,req.Message["transaction"].(string),body,jsep)
+					if jpResult.ResultType == janusCore.JANUS_PLUGIN_OK{
+						if jpResult.Content==nil{
+							continue
+						}
+
+					} else if jpResult.ResultType==janusCore.JANUS_PLUGIN_OK_WAIT{
+						var retVar = struct {
+							Janus string`json:"janus"`
+							SessionId string`json:"session_id""`
+							Transaction string`json:"transaction"`
+							Hint string`json:"hint"`
+						}{Janus:"ack",SessionId:sessionId,Transaction:req.Message["transaction"].(string),Hint:jpResult.DesText}
+						jsonStr,err := json.Marshal(retVar)
+						if err!=nil{
+							fmt.Println(err.Error())
+						}
+						req.Transport.SendMessagee(req.TransportSessionHandler,nil,req.Admin,jsonStr)
+					}else if jpResult.ResultType==janusCore.JANUS_PLUGIN_ERROR{
+						//something panic
+						reasonStr := "Plugin returned a severe (unknown) error"
+						if jpResult.DesText!=""{
+							reasonStr=jpResult.DesText
+						}
+						var retErr = struct {
+							Janus string`json:"janus"`
+							SessionId string`json:"session_id"`
+							Transaction string`json:"transaction"`
+							Error struct{
+								Code int`json:"code"`
+								Reason string`json:"reason"`
+							}`json:"error"`
+						}{Janus:"error",SessionId:sessionId,Transaction:req.Message["transaction"].(string),
+							Error:struct{
+								Code int`json:"code"`
+								Reason string`json:"reason"`
+							}{Code:janusCore.JANUS_ERROR_PLUGIN_MESSAGE,Reason:reasonStr}}
+						jsonStr,err := json.Marshal(retErr)
+						if err!=nil{
+							fmt.Println(err.Error())
+						}
+						req.Transport.SendMessagee(req.TransportSessionHandler,nil,req.Admin,jsonStr)
+					}
+				} else if janusText=="trickle"{
+					sessionId := req.Message["session_id"].(string)
+					sessionHandler,ok := janusRunVar.sessions[sessionId].(*janusCore.JanusSession)
+					if !ok{
+						fmt.Println("session_id must exist")
+					}
+					sessionHandler.LastActivity=time.Now().UnixNano()
+
+					iceHandleId := req.Message["handle_id"].(string)
+					iceHandler := sessionHandler.IceHandlers[iceHandleId]
+					fmt.Println(iceHandler)
+
+					var retRes = struct {
+						Janus string`json:"janus"`
+						SessionId string`json:"session_id"`
+						Transaction string`json:"transaction"`
+						Data struct{Id string`json:"id"`}`json:"data"`
+					}{Janus:"success",Transaction: req.Message["transaction"].(string),SessionId:sessionId,Data: struct{ Id string `json:"id"` }{Id: ih.HandleId }}
+					jsonStr,err := json.Marshal(retRes)
+					if err!=nil{
+						fmt.Println(err.Error())
+					}
+					req.Transport.SendMessagee(req.TransportSessionHandler,nil,req.Admin,jsonStr)
+				}  else if janusText == "ping" {
+					if janusText!=nil{
+						fmt.Println(janusText)
+					}
 				}
 			}
 		}

@@ -23,14 +23,14 @@ func NewJanusIceHandle(janusSessionHander interface{}) *JanusIceHandle {
 
 type JanusReuest struct {
 	Transport JanusTransport
-	Instance interface{}
+	TransportSessionHandler interface{}
 	RequestId *JanusReuest
 	Admin bool
 	Message map[string]interface{}
 }
 
 func NewJanusReuest(transport JanusTransport, instance interface{}, requestId *JanusReuest, admin bool, message map[string]interface{}) *JanusReuest {
-	return &JanusReuest{Transport: transport, Instance: instance, RequestId: requestId, Admin: admin, Message: message}
+	return &JanusReuest{Transport: transport, TransportSessionHandler: instance, RequestId: requestId, Admin: admin, Message: message}
 }
 
 

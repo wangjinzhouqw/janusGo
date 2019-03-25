@@ -9,8 +9,12 @@ const JANUS_PLUGIN_API_VERSION  = 10
 
 type JanusPluginResult struct {
 	ResultType int
-	Text string
+	DesText string
 	Content map[string]interface{}
+}
+
+func NewJanusPluginResult(resultType int, desText string) *JanusPluginResult {
+	return &JanusPluginResult{ResultType: resultType, DesText: desText}
 }
 
 type JanusPluginSession struct {

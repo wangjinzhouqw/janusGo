@@ -82,7 +82,10 @@ func (e *EchoPlugin) HandleMessage(janusPluginSession interface{}, transaction s
 	sjps.AudioActive = audioEnable
 	sjps.VideoActive = videoEnable
 
-	return JanusPluginResult{}
+	jpResult := NewJanusPluginResult(JANUS_PLUGIN_OK_WAIT,transaction)
+	jpResult.DesText="I'm taking my time!"
+
+	return *jpResult
 }
 
 func (e *EchoPlugin) SetupMedia(janusPluginSession interface{}) {
