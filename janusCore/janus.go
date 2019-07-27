@@ -11,6 +11,11 @@ type JanusIceHandle struct {
 	JanusSessionHander interface{}
 	JanusPluginHander interface{}
 	JanusPluginSessionHandler interface{}
+
+	JanusIceStreamHandler JanusIceHandle
+	LocalSdp string
+	RemoteSdp string
+	RtpProfile string
 }
 
 func NewJanusIceHandle(janusSessionHander interface{}) *JanusIceHandle {
@@ -19,6 +24,10 @@ func NewJanusIceHandle(janusSessionHander interface{}) *JanusIceHandle {
 		HandleId:strconv.FormatUint(rand.Uint64(),16),
 	}
 	return &jih
+}
+
+type JanusIceStream struct {
+
 }
 
 type JanusReuest struct {

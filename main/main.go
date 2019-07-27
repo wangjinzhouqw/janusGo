@@ -352,8 +352,7 @@ func janusTransportRequestProcessor() {
 						Janus string`json:"janus"`
 						SessionId string`json:"session_id"`
 						Transaction string`json:"transaction"`
-						Data struct{Id string`json:"id"`}`json:"data"`
-					}{Janus:"success",Transaction: req.Message["transaction"].(string),SessionId:sessionId,Data: struct{ Id string `json:"id"` }{Id: ih.HandleId }}
+					}{Janus:"ack",Transaction: req.Message["transaction"].(string),SessionId:sessionId}
 					jsonStr,err := json.Marshal(retRes)
 					if err!=nil{
 						fmt.Println(err.Error())
